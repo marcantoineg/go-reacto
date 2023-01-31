@@ -1,16 +1,22 @@
 package main
 
-import goreacto "go-reacto"
+import (
+	"fmt"
+	goreacto "go-reacto"
+)
 
 func main() {
-	p := goreacto.Publisher[string]{}
+	p := goreacto.Publisher[int]{}
 
-	p.Subscribe(func(s string) {
-		println(s)
-		panic("panic in the subsribe")
-	}).OnError(func(err error) {
-		println("an error occured:\n" + err.Error())
+	mapped_p := goreacto.Map(&p, func(i int) string {
+		return fmt.Sprintf("block got value: %d", i)
 	})
 
-	p.Publish("hello world!")
+	mapped_p.Subscribe(func(s string) {
+		println(s)
+	})
+
+	for i := 0; i < 10; i++ {
+		p.Publish(i)
+	}
 }
