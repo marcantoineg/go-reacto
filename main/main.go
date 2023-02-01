@@ -8,15 +8,15 @@ import (
 func main() {
 	p := goreacto.Publisher[int]{}
 
+	p.Subscribe(func(i int) { println(i) })
+
 	mapped_p := goreacto.Map(&p, func(i int) string {
-		return fmt.Sprintf("block got value: %d", i)
+		return fmt.Sprintf("map block got value: %d", i)
 	})
 
-	mapped_p.Subscribe(func(s string) {
-		println(s)
-	})
+	mapped_p.Subscribe(func(s string) { println(s) })
 
-	for i := 0; i < 10; i++ {
-		p.Publish(i)
-	}
+	p.Publish(1)
+	p.Publish(2)
+	p.Publish(3)
 }
