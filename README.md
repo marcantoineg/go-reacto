@@ -3,3 +3,29 @@
 # go-reacto &nbsp; <img height="20px" src="https://img.shields.io/badge/Golang-FFFFFF?logo=go&style=flat">
 Reactive in Go
 <sub><sub><em>or something</em></sub></sub>
+
+## Usages
+
+```go
+p := goreacto.Publisher[int]{}
+
+
+goreacto.Map(&p, func(i int) string {
+  return fmt.Sprintf("map block got value: %d", i)
+}).
+  Subscribe(func(s string) {
+    println(s)
+  })
+
+p.Publish(1)
+p.Publish(2)
+p.Publish(3)
+
+// would output
+// 1
+// map block got value: 1
+// 2
+// map block got value: 2
+// 3
+// map block got value: 3
+```
