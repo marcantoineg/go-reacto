@@ -4,20 +4,23 @@ import (
 	"errors"
 )
 
+type subfunc[T any] func(T)
+type errorfunc[T any] func(T)
+
 type Publisher[T any] struct {
-	_value           *T
-	_err             error
-	_sub_blocks      []func(T)
-	_on_error_blocks []func(error)
+	_value      *T
+	_err        error
+	_subs       []subfunc[T]
+	_error_subs []errorfunc[error]
 }
 
 func (p *Publisher[T]) Subscribe(sub_block func(T)) *Publisher[T] {
-	p._sub_blocks = append(p._sub_blocks, sub_block)
+	p._subs = append(p._subs, sub_block)
 	return p
 }
 
 func (p *Publisher[T]) OnError(on_error_block func(error)) *Publisher[T] {
-	p._on_error_blocks = append(p._on_error_blocks, on_error_block)
+	p._error_subs = append(p._error_subs, on_error_block)
 	return p
 }
 
@@ -30,7 +33,7 @@ func (p *Publisher[T]) onError() {
 			err = e
 		}
 		p._err = err
-		for _, on_error_block := range p._on_error_blocks {
+		for _, on_error_block := range p._error_subs {
 			on_error_block(p._err)
 		}
 	}
@@ -38,10 +41,8 @@ func (p *Publisher[T]) onError() {
 
 func (p *Publisher[T]) Publish(new_value T) {
 	p._value = &new_value
-	for _, block := range p._sub_blocks {
-		defer func() {
-			p.onError()
-		}()
-		block(*p._value)
+	for _, sub_func := range p._subs {
+		defer func() { p.onError() }()
+		sub_func(*p._value)
 	}
 }
