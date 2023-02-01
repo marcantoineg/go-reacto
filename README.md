@@ -4,7 +4,7 @@
 Reactive in Go
 <sub><sub><em>or something</em></sub></sub>
 
-## Usages
+<br>
 
 ```go
 p := goreacto.Publisher[int]{}
