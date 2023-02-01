@@ -14,17 +14,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-    
+
+      - id: is-dirty
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            go:
+              - "*/**/*.go"
+              - "go.sum"
+              - "go.mod"
+
       - name: Setup Go environment
+        if: steps.is-dirty.outputs.go == true
         uses: actions/setup-go@v3.5.0
         with:
           go-version: 1.18
 
       - name: Install go mods
+        if: steps.is-dirty.outputs.go == true
         run: go mod download
 
       - name: Run go vet
+        if: steps.is-dirty.outputs.go == true
         run: go vet ./...
 
       - name: Run go tests
+        if: steps.is-dirty.outputs.go == true
         run: go test ./... -v
