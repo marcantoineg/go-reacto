@@ -9,13 +9,13 @@ Reactive in Go
 ```go
 p := goreacto.Publisher[int]{}
 
+p.Subscribe(func(i int) { println(i) })
 
-goreacto.Map(&p, func(i int) string {
+mapped_p := goreacto.Map(&p, func(i int) string {
   return fmt.Sprintf("map block got value: %d", i)
-}).
-  Subscribe(func(s string) {
-    println(s)
-  })
+})
+
+mapped_p.Subscribe(func(s string) { println(s) })
 
 p.Publish(1)
 p.Publish(2)
