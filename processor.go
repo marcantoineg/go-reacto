@@ -20,3 +20,24 @@ func Map[T, R any](p *Publisher[T], block func(T) R) *Publisher[R] {
 
 	return &new_pub
 }
+
+type FilterProcessor[T any] struct {
+	block func(T) bool
+}
+
+func (p *FilterProcessor[T]) execute(value T) *T {
+	if p.block(value) {
+		return &value
+	}
+	return nil
+}
+
+func Filter[T any](p *Publisher[T], filterblock func(T) bool) *Publisher[T] {
+	new_pub := Publisher[T]{}
+	p.Subscribe(func(t T) {
+		if filterblock(t) {
+			new_pub.Publish(t)
+		}
+	})
+	return &new_pub
+}
