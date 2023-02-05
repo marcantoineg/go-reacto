@@ -1,17 +1,14 @@
 package goreacto
 
-import (
-	"errors"
-)
-
 type subfunc[T any] func(T)
-type errorfunc[T any] func(T)
+type errorfunc func(error)
 
 type Publisher[T any] struct {
 	_value      *T
 	_err        error
 	_subs       []subfunc[T]
-	_error_subs []errorfunc[error]
+	_error_subs []errorfunc
+	_done       bool
 }
 
 func (p *Publisher[T]) Subscribe(sub_block func(T)) *Publisher[T] {
@@ -24,25 +21,20 @@ func (p *Publisher[T]) OnError(on_error_block func(error)) *Publisher[T] {
 	return p
 }
 
-func (p *Publisher[T]) onError() {
-	if r := recover(); r != nil {
-		var err error
-		if str, ok := r.(string); ok {
-			err = errors.New(str)
-		} else if e, ok := r.(error); ok {
-			err = e
-		}
-		p._err = err
-		for _, on_error_block := range p._error_subs {
-			on_error_block(p._err)
+func (p *Publisher[T]) Publish(new_value T) {
+	if !p._done {
+		p._value = &new_value
+		for _, sub_func := range p._subs {
+			sub_func(*p._value)
 		}
 	}
 }
 
-func (p *Publisher[T]) Publish(new_value T) {
-	p._value = &new_value
-	for _, sub_func := range p._subs {
-		defer func() { p.onError() }()
-		sub_func(*p._value)
+func (p *Publisher[T]) Error(e error) {
+	p._err = e
+	p._done = true
+	p._subs = nil
+	for _, errorBlock := range p._error_subs {
+		errorBlock(p._err)
 	}
 }
