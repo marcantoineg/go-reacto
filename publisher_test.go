@@ -1,6 +1,7 @@
 package goreacto
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -23,6 +24,7 @@ func Test_Publishers(t *testing.T) {
 				assert.Empty(t, p._subs)
 				assert.Nil(t, p._err)
 				assert.Nil(t, p._value)
+				assert.False(t, p._done)
 			},
 		},
 		{
@@ -106,6 +108,43 @@ func Test_Publishers(t *testing.T) {
 				assert.Nil(t, result)
 			},
 		},
+		{
+			"error block is ran when an error is published",
+			func(p *Publisher[any]) any {
+				var e error
+				p.OnError(func(err error) {
+					e = err
+				})
+
+				p.Error(errors.New("this is an error"))
+
+				return e
+			},
+			func(p *Publisher[any], a any) {
+				err, ok := a.(error)
+				assert.True(t, ok)
+				assert.Equal(t, "this is an error", err.Error())
+			},
+		},
+		{
+			"publisher should not publish new value when it is done",
+			func(p *Publisher[any]) any {
+				values := []any{}
+				p.Subscribe(func(a any) {
+					values = append(values, a)
+				})
+
+				p.Publish(1)
+				p.Error(errors.New("some error"))
+				p.Publish(2)
+				return values
+			},
+			func(p *Publisher[any], a any) {
+				values, ok := a.([]any)
+				assert.True(t, ok)
+				assert.Equal(t, []any{1}, values)
+			},
+		},
 	}
 
 	for _, tr := range testRuns {
@@ -116,6 +155,7 @@ func Test_Publishers(t *testing.T) {
 			if tr.test_manipulation != nil {
 				results = tr.test_manipulation(p)
 			}
+
 			if tr.checks != nil {
 				tr.checks(p, results)
 			}
