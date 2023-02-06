@@ -32,7 +32,7 @@ func (p *FilterProcessor[T]) execute(value T) *T {
 	return nil
 }
 
-func Filter[T any](p *Publisher[T], filterblock func(T) bool) *Publisher[T] {
+func (p *Publisher[T]) Filter(filterblock func(T) bool) *Publisher[T] {
 	new_pub := Publisher[T]{}
 	p.Subscribe(func(t T) {
 		if filterblock(t) {

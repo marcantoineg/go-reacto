@@ -49,8 +49,7 @@ func Test_Processors(t *testing.T) {
 			func(p *Publisher[int]) any {
 				filteredValues := []int{}
 
-				Filter(
-					p,
+				p.Filter(
 					func(i int) bool {
 						return i%2 == 0
 					},
@@ -79,15 +78,12 @@ func Test_Processors(t *testing.T) {
 			func(p *Publisher[int]) any {
 				values := []int{}
 
-				mapPub := Map(
+				Map(
 					p,
 					func(a int) int {
 						return a * 2
 					},
-				)
-
-				Filter(
-					mapPub,
+				).Filter(
 					func(i int) bool {
 						return i > 100
 					},
